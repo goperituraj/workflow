@@ -1,0 +1,32 @@
+name: Add Patience Quotes to PRs
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  add-quotes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Generate Random Quote
+        id: random-quote
+        run: |
+          echo "::set-output name=quote::$(curl -s https://api.quotable.io/random?tags=patience | jq -r '.content')"
+
+      - name: Add Quote Comment to PR
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const quote = `> ${process.env.QUOTE}\n\n![Patience Meme](https://example.com/patience-meme.png)`;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: quote
+            });
